@@ -388,31 +388,31 @@
     return self;
 }
 
-- (void)setFrame:(CGRect)frame
-{
-    CGRect r = self.frame;
-    [super setFrame:frame];
-
-    // only change if the frame changes and not during initialization
-    if ( ! CGRectEqualToRect(r, frame))
-    {
-        RMProjectedPoint centerPoint = self.centerProjectedPoint;
-
-        CGRect bounds = CGRectMake(0, 0, frame.size.width, frame.size.height);
-        _backgroundView.frame = bounds;
-        _mapScrollView.frame = bounds;
-        _overlayView.frame = bounds;
-
-        [self setCenterProjectedPoint:centerPoint animated:NO];
-
-        [self correctPositionOfAllAnnotations];
-
-        self.minZoom = 0; // force new minZoom calculation
-
-        if (_loadingTileView)
-            _loadingTileView.mapZooming = NO;
-    }
-}
+// - (void)setFrame:(CGRect)frame
+// {
+//     CGRect r = self.frame;
+//     [super setFrame:frame];
+//
+//     // only change if the frame changes and not during initialization
+//     if ( ! CGRectEqualToRect(r, frame))
+//     {
+//         RMProjectedPoint centerPoint = self.centerProjectedPoint;
+//
+//         CGRect bounds = CGRectMake(0, 0, frame.size.width, frame.size.height);
+//         _backgroundView.frame = bounds;
+//         _mapScrollView.frame = bounds;
+//         _overlayView.frame = bounds;
+//
+//         [self setCenterProjectedPoint:centerPoint animated:NO];
+//
+//         [self correctPositionOfAllAnnotations];
+//
+//         self.minZoom = 0; // force new minZoom calculation
+//
+//         if (_loadingTileView)
+//             _loadingTileView.mapZooming = NO;
+//     }
+// }
 
 + (UIImage *)resourceImageNamed:(NSString *)imageName
 {
@@ -632,6 +632,22 @@
     {
         self.viewControllerPresentingAttribution = nil;
     }
+
+    RMProjectedPoint centerPoint = self.centerProjectedPoint;
+
+    CGRect bounds = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
+    _backgroundView.frame = bounds;
+    _mapScrollView.frame = bounds;
+    _overlayView.frame = bounds;
+
+    [self setCenterProjectedPoint:centerPoint animated:NO];
+
+    [self correctPositionOfAllAnnotations];
+
+    self.minZoom = 0; // force new minZoom calculation
+
+    if (_loadingTileView)
+        _loadingTileView.mapZooming = NO;
 
     [super layoutSubviews];
 }
@@ -1166,7 +1182,7 @@
 {
     if (self.userTrackingMode != RMUserTrackingModeNone && ! CGPointEqualToPoint(pivot, [self coordinateToPixel:self.userLocation.location.coordinate]))
         self.userTrackingMode = RMUserTrackingModeNone;
-    
+
     // Calculate rounded zoom
     float newZoom = fmin(ceilf([self zoom]) + 1.0, [self maxZoom]);
 
@@ -1470,7 +1486,7 @@
 
     if (self.userTrackingMode != RMUserTrackingModeNone && wasUserAction)
         self.userTrackingMode = RMUserTrackingModeNone;
-    
+
     [self correctPositionOfAllAnnotations];
 
     if (_zoom < 3 && self.userTrackingMode == RMUserTrackingModeFollowWithHeading)
@@ -3775,7 +3791,7 @@
 - (void)setViewControllerPresentingAttribution:(UIViewController *)viewController
 {
     _viewControllerPresentingAttribution = viewController;
-    
+
     if (_viewControllerPresentingAttribution && ! _attributionButton)
     {
         _attributionButton = [UIButton buttonWithType:UIButtonTypeInfoLight];
