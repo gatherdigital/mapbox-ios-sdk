@@ -35,6 +35,4 @@
 
 - (id)initWithTile:(RMTile)tile forTileSource:(id <RMTileSource>)source usingCache:(RMTileCache *)cache;
 
-@property (nonatomic, strong) NSError *error;
-
 @end

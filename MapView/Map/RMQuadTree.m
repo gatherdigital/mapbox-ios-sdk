@@ -68,8 +68,7 @@
 {
     RMProjectedRect _boundingBox, _northWestBoundingBox, _northEastBoundingBox, _southWestBoundingBox, _southEastBoundingBox;
     NSMutableArray *_annotations;
-    __weak RMQuadTreeNode *_parentNode;
-    RMQuadTreeNode *_northWest, *_northEast, *_southWest, *_southEast;
+    RMQuadTreeNode *_parentNode, *_northWest, *_northEast, *_southWest, *_southEast;
     RMQuadTreeNodeType _nodeType;
     __weak RMMapView *_mapView;
 

@@ -72,7 +72,8 @@
 #import "RMTileImage.h"
 #import "RMTileCache.h"
 #import "RMFractalTileProjection.h"
-#import "FMDB.h"
+#import "FMDatabase.h"
+#import "FMDatabaseQueue.h"
 
 #pragma mark --- begin constants ----
 

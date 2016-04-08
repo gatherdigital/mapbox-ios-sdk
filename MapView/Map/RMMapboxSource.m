@@ -53,12 +53,17 @@
 
 - (id)init
 {
-    return [self initWithMapID:kMapboxPlaceholderMapID];
+    return [self initWithReferenceURL:[NSURL fileURLWithPath:[RMMapView pathForBundleResourceNamed:kMapboxPlaceholderMapID ofType:@"json"]]];
 }
 
 - (id)initWithMapID:(NSString *)mapID
 {
-    return [self initWithMapID:mapID enablingDataOnMapView:nil];
+    return [self initWithMapID:mapID enablingSSL:NO];
+}
+
+- (id)initWithMapID:(NSString *)mapID enablingSSL:(BOOL)enableSSL
+{
+    return [self initWithMapID:mapID enablingDataOnMapView:nil enablingSSL:enableSSL];
 }
 
 - (id)initWithTileJSON:(NSString *)tileJSON
@@ -70,8 +75,6 @@
 {
     if (self = [super init])
     {
-        NSAssert([[[RMConfiguration sharedInstance] accessToken] length], @"an access token is required to use Mapbox map tiles");
-
         _dataQueue = dispatch_queue_create(nil, DISPATCH_QUEUE_SERIAL);
 
         _infoDictionary = (NSDictionary *)[NSJSONSerialization JSONObjectWithData:[tileJSON dataUsingEncoding:NSUTF8StringEncoding]
@@ -83,10 +86,9 @@
         _tileJSON = tileJSON;
 
         if ([_infoDictionary[@"id"] hasPrefix:@"examples."])
-            RMLog(@"Using watermarked example map ID %@. Please go to https://mapbox.com and create your own map style.", _infoDictionary[@"id"]);
+            RMLog(@"Using watermarked example map ID %@. Please go to http://mapbox.com and create your own map style.", _infoDictionary[@"id"]);
 
-        _uniqueTilecacheKey = [NSString stringWithFormat:@"Mapbox-%@%@%@", _infoDictionary[@"id"], (_infoDictionary[@"version"] ? [@"-" stringByAppendingString:_infoDictionary[@"version"]] : @""),
-            ([RMMapboxSource isUsingLargeTiles] ? @"-512" : @"")];
+        _uniqueTilecacheKey = [NSString stringWithFormat:@"Mapbox-%@%@", _infoDictionary[@"id"], (_infoDictionary[@"version"] ? [@"-" stringByAppendingString:_infoDictionary[@"version"]] : @"")];
 
         id dataObject = nil;
         
@@ -158,54 +160,42 @@
     id dataObject = nil;
     
     if ([[referenceURL pathExtension] isEqualToString:@"jsonp"])
-    {
-        referenceURL = [NSURL URLWithString:[[referenceURL absoluteString] stringByReplacingOccurrencesOfString:@".jsonp"
+        referenceURL = [NSURL URLWithString:[[referenceURL absoluteString] stringByReplacingOccurrencesOfString:@".jsonp" 
                                                                                                      withString:@".json"
                                                                                                         options:NSAnchoredSearch & NSBackwardsSearch
                                                                                                           range:NSMakeRange(0, [[referenceURL absoluteString] length])]];
-    }
-
-    NSError *error = nil;
-
-    if ([[referenceURL pathExtension] isEqualToString:@"json"] && (dataObject = [NSString brandedStringWithContentsOfURL:referenceURL encoding:NSUTF8StringEncoding error:&error]) && dataObject)
-    {
-        if (error && [error.domain isEqual:NSURLErrorDomain] && error.code == -1012)
-        {
-#ifdef DEBUG
-            NSAssert(![[dataObject lowercaseString] hasSuffix:@"invalid token\"}"], @"invalid token in use");
-#endif
-        }
-
+    
+    if ([[referenceURL pathExtension] isEqualToString:@"json"] && (dataObject = [NSString brandedStringWithContentsOfURL:referenceURL encoding:NSUTF8StringEncoding error:nil]) && dataObject)
         return [self initWithTileJSON:dataObject enablingDataOnMapView:mapView];
-    }
 
     return nil;
 }
 
 - (id)initWithMapID:(NSString *)mapID enablingDataOnMapView:(RMMapView *)mapView
 {
-    return [self initWithReferenceURL:[self canonicalURLForMapID:mapID] enablingDataOnMapView:mapView];
+    return [self initWithMapID:mapID enablingDataOnMapView:mapView enablingSSL:NO];
+}
+
+- (id)initWithMapID:(NSString *)mapID enablingDataOnMapView:(RMMapView *)mapView enablingSSL:(BOOL)enableSSL
+{
+    NSString *referenceURLString = [NSString stringWithFormat:@"http%@://api.tiles.mapbox.com/v3/%@.json%@", (enableSSL ? @"s" : @""), mapID, (enableSSL ? @"?secure" : @"")];
+
+    return [self initWithReferenceURL:[NSURL URLWithString:referenceURLString] enablingDataOnMapView:mapView];
 }
 
 - (void)dealloc
 {
-#if ! OS_OBJECT_USE_OBJC
     if (_dataQueue)
         dispatch_release(_dataQueue);
-#endif
 }
 
 #pragma mark 
 
-- (NSURL *)canonicalURLForMapID:(NSString *)mapID
-{
-    return [NSURL URLWithString:[NSString stringWithFormat:@"https://api.tiles.mapbox.com/v4/%@.json?secure%@", mapID,
-                [@"&access_token=" stringByAppendingString:[[RMConfiguration sharedInstance] accessToken]]]];
-}
-
 - (NSURL *)tileJSONURL
 {
-    return [self canonicalURLForMapID:self.infoDictionary[@"id"]];
+    BOOL useSSL = [self.infoDictionary[@"tiles"][0] hasPrefix:@"https"];
+
+    return [NSURL URLWithString:[NSString stringWithFormat:@"http%@://api.tiles.mapbox.com/v3/%@.json%@", (useSSL ? @"s" : @""), self.infoDictionary[@"id"], (useSSL ? @"?secure" : @"")]];
 }
 
 - (NSURL *)URLForTile:(RMTile)tile
@@ -369,19 +359,9 @@
     return roundf(([self maxZoom] + [self minZoom]) / 2);
 }
 
-+ (BOOL)isUsingLargeTiles
-{
-    return ([[UIScreen mainScreen] scale] > 1.0);
-}
-
 - (NSString *)uniqueTilecacheKey
 {
     return _uniqueTilecacheKey;
-}
-
-- (NSUInteger)tileSideLength
-{
-    return ([RMMapboxSource isUsingLargeTiles] ? 512 : kMapboxDefaultTileSize);
 }
 
 - (NSString *)shortName

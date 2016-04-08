@@ -26,22 +26,18 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #import "RMTileCacheDownloadOperation.h"
-#import "RMAbstractWebMapSource.h"
-#import "RMConfiguration.h"
 
 @implementation RMTileCacheDownloadOperation
 {
     RMTile _tile;
-    __weak id <RMTileSource>_source;
-    __weak RMTileCache *_cache;
+    id <RMTileSource>_source;
+    RMTileCache *_cache;
 }
 
 - (id)initWithTile:(RMTile)tile forTileSource:(id <RMTileSource>)source usingCache:(RMTileCache *)cache
 {
     if (!(self = [super init]))
         return nil;
-
-    NSAssert([source isKindOfClass:[RMAbstractWebMapSource class]], @"only web-based tile sources are supported for downloading");
 
     _tile   = tile;
     _source = source;
@@ -58,38 +54,13 @@
     if ([self isCancelled])
         return;
 
-    if ( ! [_cache cachedImage:_tile withCacheKey:[_source uniqueTilecacheKey] bypassingMemoryCache:YES])
+    if ( ! [_cache cachedImage:_tile withCacheKey:[_source uniqueTilecacheKey]])
     {
         if ([self isCancelled])
             return;
 
-        NSURL *tileURL = [(RMAbstractWebMapSource *)_source URLForTile:_tile];
-        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:tileURL];
-        request.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
-        NSError *error = nil;
-        NSData *data = [NSURLConnection sendBrandedSynchronousRequest:request
-                                                    returningResponse:nil
-                                                                error:&error];
-
-        if ( ! data || error != nil)
-        {
-            if (error != nil)
-            {
-                self.error = error;
-            }
-            else
-            {
-                self.error = [NSError errorWithDomain:NSURLErrorDomain
-                                                 code:NSURLErrorUnknown
-                                             userInfo:nil];
-            }
-
+        if ( ! [_source imageForTile:_tile inCache:_cache])
             [self cancel];
-        }
-        else
-        {
-            [_cache addDiskCachedImageData:data forTile:_tile withCacheKey:[_source uniqueTilecacheKey]];
-        }
     }
 }
 

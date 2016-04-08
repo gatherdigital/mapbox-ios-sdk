@@ -81,7 +81,7 @@
                     for (CLLocation *point in interiorPolygon.points)
                         [aShape addLineToCoordinate:point.coordinate];
 
-                    [aShape addLineToCoordinate:interiorPolygon.coordinate];
+                    [aShape closePath];
                 }
 
                 aShape.fillColor = [UIColor colorWithRed:0 green:0 blue:1 alpha:0.2];
