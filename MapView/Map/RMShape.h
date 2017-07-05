@@ -78,7 +78,7 @@
 
 @property (nonatomic, assign) BOOL scaleLineWidth;
 @property (nonatomic, assign) CGFloat shadowBlur;
-@property (nonatomic, assign) CGSize shadowOffset;
+@property (assign) CGSize shadowOffset;
 @property (nonatomic, assign) BOOL enableShadow;
 
 /** The bounding box of the shape in the current viewport. */
@@ -89,19 +89,19 @@
 
 /** @name Drawing Shapes */
 
-/** Move the drawing pen to a projected point. 
+/** Move the drawing pen to a projected point.
 *   @param projectedPoint The projected point to move to. */
 - (void)moveToProjectedPoint:(RMProjectedPoint)projectedPoint;
 
-/** Move the drawing pen to a screen point. 
+/** Move the drawing pen to a screen point.
 *   @param point The screen point to move to. */
 - (void)moveToScreenPoint:(CGPoint)point;
 
-/** Move the drawing pen to a coordinate. 
+/** Move the drawing pen to a coordinate.
 *   @param coordinate The coordinate to move to. */
 - (void)moveToCoordinate:(CLLocationCoordinate2D)coordinate;
 
-/** Draw a line from the current pen location to a projected point. 
+/** Draw a line from the current pen location to a projected point.
 *   @param projectedPoint The projected point to draw to. */
 - (void)addLineToProjectedPoint:(RMProjectedPoint)projectedPoint;
 
@@ -135,7 +135,7 @@
 *   @param controlProjectedPoint The control projected point. */
 - (void)addQuadCurveToProjectedPoint:(RMProjectedPoint)projectedPoint controlProjectedPoint:(RMProjectedPoint)controlProjectedPoint;
 
-/** Alter the path without rerecalculating the geometry. Recommended for many operations in order to increase performance. 
+/** Alter the path without rerecalculating the geometry. Recommended for many operations in order to increase performance.
 *   @param block A block containing the operations to perform. */
 - (void)performBatchOperations:(void (^)(RMShape *aShape))block;
 

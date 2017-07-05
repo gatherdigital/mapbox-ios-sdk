@@ -17,6 +17,7 @@ Pod::Spec.new do |m|
   m.ios.deployment_target = '5.0'
 
   m.source_files = 'Proj4/*.h', 'MapView/Map/*.{h,c,m}'
+  m.public_header_files = 'MapView/Map/*.h'
 
   m.requires_arc = true
 
@@ -30,14 +31,13 @@ Pod::Spec.new do |m|
 
   m.libraries = 'Proj4', 'sqlite3', 'z'
 
-  m.xcconfig = { 'OTHER_LDFLAGS' => '-ObjC', 'LIBRARY_SEARCH_PATHS' => '"${PODS_ROOT}/Mapbox/Proj4"' }
+  m.xcconfig = { 'OTHER_LDFLAGS' => '-ObjC' }
 
   m.preserve_paths = 'MapView/MapView.xcodeproj', 'MapView/Map/Resources'
 
   m.vendored_libraries = 'Proj4/libProj4.a'
 
-  m.dependency 'FMDB', '2.3'
+  m.dependency 'FMDB', '2.7.2'
   m.dependency 'GRMustache', '7.3.2'
   m.dependency 'SMCalloutView', '2.0'
-
 end
